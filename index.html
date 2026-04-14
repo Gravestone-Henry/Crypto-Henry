@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoPulse Em Tempo Real</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <h1>Crypto<span>Pulse-Henry</span></h1>
+            </div>
+            <p>Market Intelligence Terminal</p>
+        </header>
+
+        <main class="dashboard">
+            <div class="card main-card">
+                <div class="card-top">
+                    <div class="asset-info">
+                        <span id="asset-logo" style="font-size: 40px;">🚀</span>
+                        <div>
+                            <h2 id="symbol">BTC/USDT</h2>
+                            <span class="badge">Live</span>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <span id="price">0.00</span>
+                        <span class="currency">USD</span>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="cryptoChart"></canvas>
+                </div>
+
+                <div class="card-footer">
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="label">Status</span>
+                            <span class="value" id="status-text"><span class="dot"></span> Online</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">Última Reflêxo</span>
+                            <span class="value" id="last-update">--:--:--</span>
+                        </div>
+                    </div>
+                    <button onclick="updatePrice()" id="update-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Developed by <strong>Henry</strong> &bull; Python Backend &bull; JS Frontend</p>
+        </footer>
+    </div>
+
+    <script>
+        // Configuração do Gráfico
+        const ctx = document.getElementById('cryptoChart').getContext('2d');
+        const cryptoChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], 
+                datasets: [{
+                    label: 'Preço (USD)',
+                    data: [],
+                    borderColor: '#22c55e',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    fill: true,
+                    backgroundColor: (context) => {
+                        const gradient = context.chart.ctx.createLinearGradient(0, 0, 0, 400);
+                        gradient.addColorStop(0, 'rgba(34, 197, 94, 0.2)');
+                        gradient.addColorStop(1, 'rgba(34, 197, 94, 0)');
+                        return gradient;
+                    }
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: { 
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono' } }
+                    }
+                }
+            }
+        });
+
+        async function updatePrice() {
+            const btn = document.getElementById('update-btn');
+            btn.classList.add('loading');
+            
+            try {
+                const response = await fetch('/api/price');
+                const data = await response.json();
+
+                if(data.error) throw new Error(data.error);
+
+                const price = data.price;
+                const time = new Date().toLocaleTimeString();
+
+                // Atualiza Texto
+                document.getElementById('price').innerText = price.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                document.getElementById('last-update').innerText = time;
+
+                // Atualiza Gráfico
+                if (cryptoChart.data.labels.length > 20) {
+                    cryptoChart.data.labels.shift();
+                    cryptoChart.data.datasets[0].data.shift();
+                }
+                cryptoChart.data.labels.push(time);
+                cryptoChart.data.datasets[0].data.push(price);
+                cryptoChart.update();
+
+            } catch (error) {
+                console.error("Erro:", error);
+            } finally {
+                setTimeout(() => btn.classList.remove('loading'), 500);
+            }
+        }
+
+        setInterval(updatePrice, 5000); // Atualiza a cada 5 segundos para o gráfico ficar bonito
+        updatePrice();
+    </script>
+</body>
+</html>

@@ -1,13 +1,13 @@
 Tecnologias ultilizadas:
 
-Backend: Python (Flask/Django)
+✅ Backend: Python (Flask/Django)
 
-Lógica de Dados: Java
+✅ Lógica de Dados: Java
 
-Frontend: HTML5, CSS3 (Estilização "Dimples")
+✅ Frontend: HTML5, CSS3 (Estilização "Dimples")
 
-API: (Ex: CoinGecko, Binance ou CoinDesk)
-
+✅ API: (Ex: CoinGecko, Binance ou CoinDesk)
+ 
  Funcionalidades Principais
 
 
